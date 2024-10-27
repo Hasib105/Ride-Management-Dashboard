@@ -1,7 +1,9 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-# Create your models here.
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 
 class Driver(models.Model):
     STATUS_CHOICES = [
@@ -20,10 +22,9 @@ class Driver(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     class Meta:
         ordering = ['-updated_at']
-
 
 class Trip(models.Model):
     STATUS_CHOICES = [
@@ -41,28 +42,39 @@ class Trip(models.Model):
 
     def __str__(self):
         return f"Trip by {self.driver.name}"
-    
 
 class Earning(models.Model):
     trip = models.OneToOneField(Trip, on_delete=models.CASCADE, related_name="earning")
     date = models.DateField(auto_now_add=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)  # Earnings per trip for admin
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"Earning from Trip {self.trip.id} on {self.date}: {self.amount}"
-    
 
 
 
-# Signal to create an earning record when a trip is completed
 @receiver(post_save, sender=Trip)
 def create_admin_earning_for_completed_trip(sender, instance, created, **kwargs):
     if not created and instance.status == 'COMPLETED':
-        earning_amount = 10.00  # Fixed amount for admin earnings per trip
+        earning_amount = 10.00  
 
-        # Check if an earning record already exists for this trip
         if not hasattr(instance, 'earning'):
             Earning.objects.create(
                 trip=instance,
                 amount=earning_amount
             )
+
+        # Send WebSocket message for trip completion
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "driver_updates",
+            {
+                "type": "driver_update",
+                "data": {
+                    "driver_id": instance.driver.id,
+                    "status": instance.status,
+                    "earning": earning_amount,
+                    "trip_id": instance.id
+                },
+            }
+        )
