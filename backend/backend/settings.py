@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'corsheaders',
+    'channels',
 
     'core',
 ]
@@ -74,7 +75,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
-
+ASGI_APPLICATION = "backend.asgi.application"
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:5173',  # React's default port

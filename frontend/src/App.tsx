@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
+
+
 
 const App = () => {
   const [data, setData] = useState<string | null>(null);
@@ -15,7 +15,7 @@ const App = () => {
   }, []);
 
   return (
-    <div>
+    <div className='bg-red-500 text-start flex justify-center'>
       {data ? <h1>{data}</h1> : <h1>Loading...</h1>}
     </div>
   );
