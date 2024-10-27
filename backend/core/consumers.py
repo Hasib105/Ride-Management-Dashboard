@@ -1,19 +1,44 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from .models import Driver,Trip
+from .serializers import DriverSerializer
 
-class DriverConsumer(AsyncWebsocketConsumer):
+class DriverLocationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Join a group where all driver updates will be broadcasted
-        await self.channel_layer.group_add("driver_updates", self.channel_name)
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave the group
-        await self.channel_layer.group_discard("driver_updates", self.channel_name)
+        pass
 
-    # Receive a message from the WebSocket
     async def receive(self, text_data):
         data = json.loads(text_data)
+        status = data.get("status", None)
 
-    async def driver_update(self, event):
-        await self.send(text_data=json.dumps(event["data"]))
+        # Fetch drivers based on the status filter
+        if status and status != 'ALL':
+            drivers = Driver.objects.filter(status=status)
+        else:
+            drivers = Driver.objects.all()
+        
+        # Serialize the driver data
+        serializer = DriverSerializer(drivers, many=True)
+        
+        # Send driver locations back to the client
+        await self.send(text_data=json.dumps(serializer.data))
+
+class TripStatisticsConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        pass
+
+    async def receive(self, text_data):
+        trip_counts = {
+            "total_trips": Trip.objects.count(),
+            "in_process_trips": Trip.objects.filter(status="IN_PROCESS").count(),
+            "canceled_trips": Trip.objects.filter(status="CANCELED").count(),
+            "completed_trips": Trip.objects.filter(status="COMPLETED").count()
+        }
+        
+        await self.send(text_data=json.dumps(trip_counts))
