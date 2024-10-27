@@ -1,5 +1,8 @@
-# Mantine Vite template
+# React + Vite
 
-Get started with the template by clicking `Use this template` button on the top of the page.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-[Documentation](https://mantine.dev/guides/vite/)
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
