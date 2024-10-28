@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .models import Driver,Trip
-from .serializers import DriverSerializer
+from core.models import Driver,Trip
+from core.serializers import DriverSerializer
 
 class DriverLocationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
