@@ -27,6 +27,9 @@ class DriverLocationConsumer(AsyncWebsocketConsumer):
         
         # Send driver locations back to the client
         await self.send(text_data=json.dumps(serializer.data))
+        
+        # Send the updated driver status to the client
+        await self.send(text_data=json.dumps({"status": status}))
 
 class TripStatisticsConsumer(AsyncWebsocketConsumer):
     async def connect(self):

@@ -4,6 +4,7 @@ from .models import Driver, Trip, Earning
 from .serializers import DriverSerializer
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from django.db.models import Sum
+from django.utils import timezone
 # Create your views here.
 
 
@@ -36,14 +37,43 @@ class DriverLocationView(APIView):
 
 class TripStatisticsView(APIView):
     def get(self, request):
-        trip_counts = {
+        # Retrieve 'type' parameter from request (default to 'total')
+        stat_type = request.query_params.get("type", "total")
+        today = timezone.now().date()
+        
+        if stat_type == "daily":
+            trip_counts = self.get_daily_statistics(today)
+        elif stat_type == "total":
+            trip_counts = self.get_cumulative_statistics()
+        else:
+            return Response({"error": "Invalid type. Choose 'total' or 'daily'."}, status=400)
+        
+        return Response(trip_counts)
+
+    def get_cumulative_statistics(self):
+        return {
             "total_trips": Trip.objects.count(),
             "in_process_trips": Trip.objects.filter(status="IN_PROCESS").count(),
             "canceled_trips": Trip.objects.filter(status="CANCELED").count(),
-            "completed_trips": Trip.objects.filter(status="COMPLETED").count()
+            "completed_trips": Trip.objects.filter(status="COMPLETED").count(),
         }
-        return Response(trip_counts)
-    
+
+    def get_daily_statistics(self, date):
+        daily_stats = (
+            Trip.objects.filter(start_time__date=date)
+            .values("status")
+            .annotate(count=Count("id"))
+        )
+        
+        return {
+            "total_trips": sum(item["count"] for item in daily_stats),
+            "in_process_trips": self.get_status_count(daily_stats, "IN_PROCESS"),
+            "canceled_trips": self.get_status_count(daily_stats, "CANCELED"),
+            "completed_trips": self.get_status_count(daily_stats, "COMPLETED"),
+        }
+
+    def get_status_count(self, stats, status):
+        return next((item["count"] for item in stats if item["status"] == status), 0)
 
 
 

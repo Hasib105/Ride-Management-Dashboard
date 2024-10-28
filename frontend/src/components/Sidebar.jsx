@@ -7,9 +7,7 @@ const Sidebar = () => {
   const sidebarRef = useRef(null);
 
   const links = [
-    { path: '/', label: 'Register', icon: <FaUserPlus /> },
-    { path: '/signin', label: 'Sign In', icon: <FaSignInAlt /> },
-    { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+    { path: '/', label: 'Dashboard', icon: <FaTachometerAlt /> },
     { path: '/trip-statistics', label: 'Trip Statistics', icon: <FaTachometerAlt /> },
     { path: '/earning-statistics', label: 'Earning Statistics', icon: <FaTachometerAlt /> },
   ];
