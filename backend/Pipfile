@@ -7,9 +7,8 @@ name = "pypi"
 django = "*"
 djangorestframework = "*"
 django-cors-headers = "*"
-mysqlclient = "==2.1.0"
+mysqlclient = "*"
 channels = "*"
-uvicorn = "*"
 daphne = "*"
 
 [dev-packages]

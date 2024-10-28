@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+import json
 
 
 class Driver(models.Model):
@@ -25,6 +26,8 @@ class Driver(models.Model):
 
     class Meta:
         ordering = ['-updated_at']
+
+
 
 class Trip(models.Model):
     STATUS_CHOICES = [
@@ -64,17 +67,26 @@ def create_admin_earning_for_completed_trip(sender, instance, created, **kwargs)
                 amount=earning_amount
             )
 
-        # Send WebSocket message for trip completion
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            "driver_updates",
-            {
-                "type": "driver_update",
-                "data": {
-                    "driver_id": instance.driver.id,
-                    "status": instance.status,
-                    "earning": earning_amount,
-                    "trip_id": instance.id
-                },
-            }
-        )
+
+@receiver(post_save, sender=Driver)
+def driver_updated(sender, instance, created, **kwargs):
+    channel_layer = get_channel_layer()
+    
+
+    data = {
+        'id': instance.id,
+        'name': instance.name,
+        'status': instance.status,
+        'latitude': str(instance.latitude),
+        'longitude': str(instance.longitude),
+    }
+    
+    message = json.dumps([data])  
+
+    async_to_sync(channel_layer.group_send)(
+        "driver_location_group",  
+        {
+            "type": "driver_location_update",
+            "message": message,
+        }
+    )

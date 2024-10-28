@@ -1,52 +1,37 @@
+# core/consumers.py
+
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
+from core.models import Driver
+from core.serializers import DriverSerializer
 
 class DriverLocationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        self.group_name = "driver_location_group"
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
 
     async def disconnect(self, close_code):
-        pass
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def receive(self, text_data):
         data = json.loads(text_data)
         status = data.get("status", None)
 
-        # Import models here to avoid AppRegistryNotReady
-        from core.models import Driver
-        from core.serializers import DriverSerializer
-
-        # Fetch drivers based on the status filter
-        if status and status != 'ALL':
-            drivers = Driver.objects.filter(status=status)
-        else:
-            drivers = Driver.objects.all()
-        
-        # Serialize the driver data
+        drivers = await self.get_drivers(status)
         serializer = DriverSerializer(drivers, many=True)
-        
-        # Send driver locations back to the client
+
         await self.send(text_data=json.dumps(serializer.data))
-        
-        # Send the updated driver status to the client
-        await self.send(text_data=json.dumps({"status": status}))
 
-class TripStatisticsConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        await self.accept()
+    async def driver_location_update(self, event):
+        """Receive updates for driver locations."""
+        message = event['message']
+        await self.send(text_data=message)
 
-    async def disconnect(self, close_code):
-        pass
-
-    async def receive(self, text_data):
-        # Import models here to avoid AppRegistryNotReady
-        from core.models import Trip
-
-        trip_counts = {
-            "total_trips": await Trip.objects.count(),
-            "in_process_trips": await Trip.objects.filter(status="IN_PROCESS").count(),
-            "canceled_trips": await Trip.objects.filter(status="CANCELED").count(),
-            "completed_trips": await Trip.objects.filter(status="COMPLETED").count()
-        }
-        
-        await self.send(text_data=json.dumps(trip_counts))
+    @database_sync_to_async
+    def get_drivers(self, status):
+        if status and status != 'ALL':
+            return list(Driver.objects.filter(status=status))
+        else:
+            return list(Driver.objects.all())
