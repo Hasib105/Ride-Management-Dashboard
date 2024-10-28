@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.db.models import Count
 from .models import Driver, Trip, Earning
 from .serializers import DriverSerializer
-from django.db.models.functions import TruncDay
+from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from django.db.models import Sum
 # Create your views here.
 
@@ -49,10 +49,55 @@ class TripStatisticsView(APIView):
 
 class EarningsReportView(APIView):
     def get(self, request):
-        earnings = (
+        # Aggregate daily, weekly, and monthly totals
+        daily_total = (
             Earning.objects.annotate(day=TruncDay('date'))
             .values('day')
             .annotate(total_amount=Sum('amount'))
-            .order_by('day')
+            .order_by('-day')[:1]
         )
-        return Response(earnings)
+        weekly_total = (
+            Earning.objects.annotate(week=TruncWeek('date'))
+            .values('week')
+            .annotate(total_amount=Sum('amount'))
+            .order_by('-week')[:1]
+        )
+        monthly_total = (
+            Earning.objects.annotate(month=TruncMonth('date'))
+            .values('month')
+            .annotate(total_amount=Sum('amount'))
+            .order_by('-month')[:1]
+        )
+
+        # Detailed earnings for selected period
+        period = request.query_params.get("period", "daily")
+        if period == "daily":
+            earnings = (
+                Earning.objects.annotate(day=TruncDay('date'))
+                .values('day')
+                .annotate(total_amount=Sum('amount'))
+                .order_by('day')
+            )
+        elif period == "weekly":
+            earnings = (
+                Earning.objects.annotate(week=TruncWeek('date'))
+                .values('week')
+                .annotate(total_amount=Sum('amount'))
+                .order_by('week')
+            )
+        elif period == "monthly":
+            earnings = (
+                Earning.objects.annotate(month=TruncMonth('date'))
+                .values('month')
+                .annotate(total_amount=Sum('amount'))
+                .order_by('month')
+            )
+        else:
+            return Response({"error": "Invalid period"}, status=400)
+
+        return Response({
+            "daily_total": daily_total[0] if daily_total else {"total_amount": 0},
+            "weekly_total": weekly_total[0] if weekly_total else {"total_amount": 0},
+            "monthly_total": monthly_total[0] if monthly_total else {"total_amount": 0},
+            "earnings": earnings,
+        })

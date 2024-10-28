@@ -2,12 +2,6 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 
-
-const containerStyle = {
-  width: '100%',
-  height: '600px'
-};
-
 const center = { lat: 37.7749, lng: -122.4194 }; // Default center (e.g., San Francisco)
 
 const Dashboard = () => {
@@ -16,7 +10,7 @@ const Dashboard = () => {
   const [tripStatistics, setTripStatistics] = useState({});
   const [selectedStatus, setSelectedStatus] = useState('ALL');
 
-  const googleMapsApiKey = 'AIzaSyB1P7_q1m49KL6DOs8Ha9axgGp9RyqNx5g'; // Replace with your actual API key
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // Fetch initial driver status counts and trip statistics
   const fetchStatusCounts = async () => {
@@ -43,7 +37,11 @@ const Dashboard = () => {
 
   // WebSocket setup for real-time driver locations
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8000/ws/driver-location/'); // Replace with your actual WebSocket URL
+    const ws = new WebSocket('ws://localhost:8000/ws/driver-location/'); 
+    const socket = new WebSocket('ws://localhost:8000/ws/driver-location/');
+    socket.onopen = () => console.log('Connection opened');
+    socket.onclose = () => console.log('Connection closed');
+    socket.onerror = (error) => console.error('WebSocket error:', error);
 
     ws.onmessage = (event) => {
       const updatedDrivers = JSON.parse(event.data);
@@ -61,27 +59,28 @@ const Dashboard = () => {
     ? drivers
     : drivers.filter(driver => driver.status === selectedStatus);
 
-  // Earnings data for bar chart
-  const earningsData = {
-    labels: ['January', 'February', 'March'], // Replace with actual data
-    datasets: [
-      {
-        label: 'Earnings',
-        data: [1200, 1900, 3000], // Replace with actual data
-        backgroundColor: 'rgba(75,192,192,0.6)',
-      },
-    ],
-  };
-
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Admin Dashboard</h1>
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold text-center mb-6">Admin Dashboard</h1>
 
       {/* Driver Status Counts */}
-      <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '20px' }}>
-        <button onClick={() => setSelectedStatus('ALL')}>All</button>
+      <div className="flex justify-around mb-6 gap-2">
+        <button
+          onClick={() => setSelectedStatus('ALL')}
+          className={`px-4 py-2 rounded-md font-semibold transition ${
+            selectedStatus === 'ALL' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+          }`}
+        >
+          All
+        </button>
         {Object.keys(statusCounts).map((status) => (
-          <button key={status} onClick={() => setSelectedStatus(status)}>
+          <button
+            key={status}
+            onClick={() => setSelectedStatus(status)}
+            className={`px-4 py-2 rounded-md font-semibold transition ${
+              selectedStatus === status ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+            }`}
+          >
             {status} ({statusCounts[status]})
           </button>
         ))}
@@ -89,7 +88,7 @@ const Dashboard = () => {
 
       {/* Google Map */}
       <LoadScript googleMapsApiKey={googleMapsApiKey}>
-        <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={12}>
+        <GoogleMap mapContainerClassName="w-full h-[600px] rounded-md overflow-hidden" center={center} zoom={12}>
           {filteredDrivers.map((driver) => (
             <Marker
               key={driver.id}
@@ -100,16 +99,6 @@ const Dashboard = () => {
         </GoogleMap>
       </LoadScript>
 
-      {/* Trip Statistics */}
-      <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}>
-        <h3>Trip Statistics</h3>
-        <p>Total Trips: {tripStatistics.total_trips}</p>
-        <p>In-process Trips: {tripStatistics.in_process_trips}</p>
-        <p>Canceled Trips: {tripStatistics.canceled_trips}</p>
-        <p>Completed Trips: {tripStatistics.completed_trips}</p>
-      </div>
-
-      
     </div>
   );
 };
