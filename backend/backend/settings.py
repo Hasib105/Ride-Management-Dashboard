@@ -88,14 +88,15 @@ CORS_ORIGIN_WHITELIST = [
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': os.environ.get('DB_PORT'),
+        'ENGINE': 'django.db.backends.mysql' if os.environ.get('DB_NAME') else 'django.db.backends.sqlite3',
+        'NAME': os.environ.get('DB_NAME') if os.environ.get('DB_NAME') else os.path.join(BASE_DIR, 'db.sqlite3'),
+        'USER': os.environ.get('DB_USER', ''),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', ''),
+        'PORT': os.environ.get('DB_PORT', ''),
     }
 }
+
 
 
 # Password validation

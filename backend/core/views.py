@@ -27,7 +27,6 @@ class DriverStatusCountView(APIView):
 
 
 
-
 class DriverLocationView(APIView):
     def get(self, request):
         drivers = Driver.objects.all()
