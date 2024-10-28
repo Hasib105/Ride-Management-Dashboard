@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.db.models import Count
 from .models import Driver, Trip, Earning
 from .serializers import DriverSerializer
-from django.db.models.functions import TruncDay
+from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from django.db.models import Sum
+from django.utils import timezone
 # Create your views here.
 
 
@@ -36,23 +37,97 @@ class DriverLocationView(APIView):
 
 class TripStatisticsView(APIView):
     def get(self, request):
-        trip_counts = {
+        # Retrieve 'type' parameter from request (default to 'total')
+        stat_type = request.query_params.get("type", "total")
+        today = timezone.now().date()
+        
+        if stat_type == "daily":
+            trip_counts = self.get_daily_statistics(today)
+        elif stat_type == "total":
+            trip_counts = self.get_cumulative_statistics()
+        else:
+            return Response({"error": "Invalid type. Choose 'total' or 'daily'."}, status=400)
+        
+        return Response(trip_counts)
+
+    def get_cumulative_statistics(self):
+        return {
             "total_trips": Trip.objects.count(),
             "in_process_trips": Trip.objects.filter(status="IN_PROCESS").count(),
             "canceled_trips": Trip.objects.filter(status="CANCELED").count(),
-            "completed_trips": Trip.objects.filter(status="COMPLETED").count()
+            "completed_trips": Trip.objects.filter(status="COMPLETED").count(),
         }
-        return Response(trip_counts)
-    
+
+    def get_daily_statistics(self, date):
+        daily_stats = (
+            Trip.objects.filter(start_time__date=date)
+            .values("status")
+            .annotate(count=Count("id"))
+        )
+        
+        return {
+            "total_trips": sum(item["count"] for item in daily_stats),
+            "in_process_trips": self.get_status_count(daily_stats, "IN_PROCESS"),
+            "canceled_trips": self.get_status_count(daily_stats, "CANCELED"),
+            "completed_trips": self.get_status_count(daily_stats, "COMPLETED"),
+        }
+
+    def get_status_count(self, stats, status):
+        return next((item["count"] for item in stats if item["status"] == status), 0)
 
 
 
 class EarningsReportView(APIView):
     def get(self, request):
-        earnings = (
+        # Aggregate daily, weekly, and monthly totals
+        daily_total = (
             Earning.objects.annotate(day=TruncDay('date'))
             .values('day')
             .annotate(total_amount=Sum('amount'))
-            .order_by('day')
+            .order_by('-day')[:1]
         )
-        return Response(earnings)
+        weekly_total = (
+            Earning.objects.annotate(week=TruncWeek('date'))
+            .values('week')
+            .annotate(total_amount=Sum('amount'))
+            .order_by('-week')[:1]
+        )
+        monthly_total = (
+            Earning.objects.annotate(month=TruncMonth('date'))
+            .values('month')
+            .annotate(total_amount=Sum('amount'))
+            .order_by('-month')[:1]
+        )
+
+        # Detailed earnings for selected period
+        period = request.query_params.get("period", "daily")
+        if period == "daily":
+            earnings = (
+                Earning.objects.annotate(day=TruncDay('date'))
+                .values('day')
+                .annotate(total_amount=Sum('amount'))
+                .order_by('day')
+            )
+        elif period == "weekly":
+            earnings = (
+                Earning.objects.annotate(week=TruncWeek('date'))
+                .values('week')
+                .annotate(total_amount=Sum('amount'))
+                .order_by('week')
+            )
+        elif period == "monthly":
+            earnings = (
+                Earning.objects.annotate(month=TruncMonth('date'))
+                .values('month')
+                .annotate(total_amount=Sum('amount'))
+                .order_by('month')
+            )
+        else:
+            return Response({"error": "Invalid period"}, status=400)
+
+        return Response({
+            "daily_total": daily_total[0] if daily_total else {"total_amount": 0},
+            "weekly_total": weekly_total[0] if weekly_total else {"total_amount": 0},
+            "monthly_total": monthly_total[0] if monthly_total else {"total_amount": 0},
+            "earnings": earnings,
+        })

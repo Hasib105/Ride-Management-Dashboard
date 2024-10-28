@@ -7,9 +7,9 @@ const Sidebar = () => {
   const sidebarRef = useRef(null);
 
   const links = [
-    { path: '/', label: 'Register', icon: <FaUserPlus /> },
-    { path: '/signin', label: 'Sign In', icon: <FaSignInAlt /> },
-    { path: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
+    { path: '/', label: 'Dashboard', icon: <FaTachometerAlt /> },
+    { path: '/trip-statistics', label: 'Trip Statistics', icon: <FaTachometerAlt /> },
+    { path: '/earning-statistics', label: 'Earning Statistics', icon: <FaTachometerAlt /> },
   ];
 
   // Close sidebar when clicking outside
@@ -41,7 +41,7 @@ const Sidebar = () => {
       
       {/* Sidebar */}
       <div className={`fixed top-0 left-0 w-64 h-full bg-gray-900 text-white flex flex-col shadow-lg transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
-        <h2 className="text-2xl font-bold p-6 border-b border-gray-700">My App</h2>
+        <h2 className="text-2xl font-bold p-6 border-b border-gray-700">RMD</h2>
         <nav className="flex-grow">
           <ul>
             {links.map((link) => (
