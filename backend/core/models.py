@@ -70,21 +70,20 @@ def create_admin_earning_for_completed_trip(sender, instance, created, **kwargs)
 
 @receiver(post_save, sender=Driver)
 def driver_updated(sender, instance, created, **kwargs):
+    from core.serializers import DriverSerializer
     channel_layer = get_channel_layer()
-    
 
-    data = {
-        'id': instance.id,
-        'name': instance.name,
-        'status': instance.status,
-        'latitude': str(instance.latitude),
-        'longitude': str(instance.longitude),
-    }
-    
-    message = json.dumps([data])  
+    # Fetch all drivers
+    drivers = Driver.objects.all()
+    # Serialize all driver data
+    serializer = DriverSerializer(drivers, many=True)
+    data = serializer.data
+
+    # Send serialized data to WebSocket group
+    message = json.dumps({"type": "driver_location_update", "data": data})
 
     async_to_sync(channel_layer.group_send)(
-        "driver_location_group",  
+        "driver_location_group",
         {
             "type": "driver_location_update",
             "message": message,

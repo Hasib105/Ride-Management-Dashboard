@@ -5,28 +5,15 @@ import { useLoadScript, GoogleMap, Marker } from "@react-google-maps/api";
 const center = { lat: 40.7128, lng: -74.006 }; // Default center New York
 
 const Dashboard = () => {
-  const [drivers, setDrivers] = useState([]); // Ensure initial state is an array
+  const [drivers, setDrivers] = useState([]);
   const [statusCounts, setStatusCounts] = useState({});
   const [selectedStatus, setSelectedStatus] = useState("ALL");
 
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey, // Loading the API key
+    googleMapsApiKey,
   });
-
-  const fetchStatusCounts = async () => {
-    try {
-      const response = await axios.get("/api/driver-status-count/");
-      const counts = response.data.reduce((acc, item) => {
-        acc[item.status] = item.count;
-        return acc;
-      }, {});
-      setStatusCounts(counts);
-    } catch (error) {
-      console.error("Error fetching driver status counts:", error);
-    }
-  };
 
   useEffect(() => {
     const address = "ws://localhost:8000/ws/driver-location/";
@@ -38,14 +25,24 @@ const Dashboard = () => {
     };
 
     socket.onmessage = (event) => {
-      console.log("Message from server:", event.data);
       try {
-        const updatedDrivers = JSON.parse(event.data);
-        if (Array.isArray(updatedDrivers)) {
-          // Ensure the data is an array
-          setDrivers(updatedDrivers);
+        const message = JSON.parse(event.data);
+        console.log("Received message:", message);
+
+        if (message.type === "drivers" && Array.isArray(message.data)) {
+          // Update driver data
+          setDrivers(message.data);
+        } else if (message.type === "status_counts") {
+          // Update status counts
+          setStatusCounts(message.data);
+        } else if (
+          message.type === "driver_location_update" &&
+          Array.isArray(message.data)
+        ) {
+          // Handle driver location updates
+          setDrivers(message.data);
         } else {
-          console.error("Received data is not an array:", updatedDrivers);
+          console.error("Unexpected data format:", message);
         }
       } catch (error) {
         console.error("Error parsing WebSocket message:", error);
@@ -59,8 +56,6 @@ const Dashboard = () => {
     socket.onclose = () => {
       console.log("WebSocket connection closed");
     };
-
-    fetchStatusCounts();
 
     return () => {
       if (socket.readyState === WebSocket.OPEN) {
