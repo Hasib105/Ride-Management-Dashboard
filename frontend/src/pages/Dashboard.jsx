@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useLoadScript, GoogleMap, Marker } from "@react-google-maps/api";
+import {
+  useLoadScript,
+  GoogleMap,
+  Marker,
+  InfoWindow,
+} from "@react-google-maps/api";
 
 const center = { lat: 40.7128, lng: -74.006 }; // Default center New York
 
@@ -8,6 +13,7 @@ const Dashboard = () => {
   const [drivers, setDrivers] = useState([]);
   const [statusCounts, setStatusCounts] = useState({});
   const [selectedStatus, setSelectedStatus] = useState("ALL");
+  const [selectedDriver, setSelectedDriver] = useState(null); // State for selected driver
 
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -30,16 +36,13 @@ const Dashboard = () => {
         console.log("Received message:", message);
 
         if (message.type === "drivers" && Array.isArray(message.data)) {
-          // Update driver data
           setDrivers(message.data);
         } else if (message.type === "status_counts") {
-          // Update status counts
           setStatusCounts(message.data);
         } else if (
           message.type === "driver_location_update" &&
           Array.isArray(message.data)
         ) {
-          // Handle driver location updates
           setDrivers(message.data);
         } else {
           console.error("Unexpected data format:", message);
@@ -111,8 +114,29 @@ const Dashboard = () => {
                 lng: parseFloat(driver.longitude),
               }}
               title={`Driver: ${driver.name}`}
+              onClick={() => setSelectedDriver(driver)} // Set selected driver on marker click
             />
           ))}
+
+          {selectedDriver && (
+            <InfoWindow
+              position={{
+                lat: parseFloat(selectedDriver.latitude),
+                lng: parseFloat(selectedDriver.longitude),
+              }}
+              onCloseClick={() => setSelectedDriver(null)} // Close info window
+            >
+              <div>
+                <h3>{selectedDriver.name}</h3>
+                <p>Status: {selectedDriver.status}</p>
+                <p>
+                  Location: {selectedDriver.latitude},{" "}
+                  {selectedDriver.longitude}
+                </p>
+             
+              </div>
+            </InfoWindow>
+          )}
         </GoogleMap>
       ) : (
         <div>Loading Map...</div>

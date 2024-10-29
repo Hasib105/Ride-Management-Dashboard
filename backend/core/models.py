@@ -42,6 +42,7 @@ class Trip(models.Model):
     dropoff_location = models.CharField(max_length=255)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Trip by {self.driver.name}"

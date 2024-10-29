@@ -79,12 +79,14 @@ class TripStatisticsView(APIView):
             "completed_trips": Trip.objects.filter(status="COMPLETED").count(),
         }
 
-    def get_daily_statistics(self, date):
+    def get_daily_statistics(self,date):
         daily_stats = (
-            Trip.objects.filter(start_time__date=date)
+            Trip.objects.filter(created_at__date=date)
             .values("status")
             .annotate(count=Count("id"))
         )
+
+        print(daily_stats)
         
         return {
             "total_trips": sum(item["count"] for item in daily_stats),
