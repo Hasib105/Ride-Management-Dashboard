@@ -49,25 +49,48 @@ const EarningStatistics = () => {
   };
 
   return (
-    <div className="flex flex-col items-center p-4 max-w-5xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">Earning Statistics</h2>
-      
+    <div className="flex flex-col items-center p-6 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold text-center mb-6">
+        Earning Statistics
+      </h1>
+
       <div className="flex gap-4 mb-4">
-        <button onClick={() => setPeriod('daily')} className={`px-4 py-2 ${period === 'daily' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>Daily</button>
-        <button onClick={() => setPeriod('weekly')} className={`px-4 py-2 ${period === 'weekly' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>Weekly</button>
-        <button onClick={() => setPeriod('monthly')} className={`px-4 py-2 ${period === 'monthly' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>Monthly</button>
+        <button
+          onClick={() => setPeriod("daily")}
+          className={`px-4 py-2 rounded-md ${
+            period === "daily" ? "bg-rose-700 text-white" : "bg-gray-200"
+          }`}
+        >
+          Daily
+        </button>
+        <button
+          onClick={() => setPeriod("weekly")}
+          className={`px-4 py-2 rounded-md ${
+            period === "weekly" ? "bg-rose-700 text-white" : "bg-gray-200"
+          }`}
+        >
+          Weekly
+        </button>
+        <button
+          onClick={() => setPeriod("monthly")}
+          className={`px-4 py-2 rounded-md ${
+            period === "monthly" ? "bg-rose-700 text-white" : "bg-gray-200"
+          }`}
+        >
+          Monthly
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 w-full max-w-3xl">
-        <div className="p-4 border rounded shadow text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 w-full ">
+        <div className="p-4 bg-[#D8EFD3] rounded border border-gray-500 text-center">
           <h3 className="text-lg font-semibold">Daily Earnings</h3>
           <p className="text-2xl">${dailyTotal.toFixed(2)}</p>
         </div>
-        <div className="p-4 border rounded shadow text-center">
+        <div className="p-4 bg-[#FEEFAD] rounded border border-gray-500 text-center">
           <h3 className="text-lg font-semibold">Weekly Earnings</h3>
           <p className="text-2xl">${weeklyTotal.toFixed(2)}</p>
         </div>
-        <div className="p-4 border rounded shadow text-center">
+        <div className="p-4 bg-[#CAF4FF] rounded border border-gray-500 text-center">
           <h3 className="text-lg font-semibold">Monthly Earnings</h3>
           <p className="text-2xl">${monthlyTotal.toFixed(2)}</p>
         </div>
@@ -75,9 +98,12 @@ const EarningStatistics = () => {
 
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
-      
-      <div className="w-full max-w-lg mt-6">
-        <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+
+      <div className="w-full max-w-3xl mt-6">
+        <Bar
+          data={chartData}
+          options={{ responsive: true, maintainAspectRatio: false }}
+        />
       </div>
     </div>
   );

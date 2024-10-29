@@ -72,13 +72,13 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-center mb-6">Admin Dashboard</h1>
-      <div className="flex justify-around mb-6 gap-2">
+      <h1 className="text-3xl font-bold text-center mb-6">Drivers Dashboard</h1>
+      <div className="flex justify-around mb-6 gap-2 flex-wrap">
         <button
           onClick={() => setSelectedStatus("ALL")}
           className={`px-4 py-2 rounded-md font-semibold transition ${
             selectedStatus === "ALL"
-              ? "bg-blue-500 text-white"
+              ? "bg-rose-700 text-white"
               : "bg-gray-200 text-gray-700"
           }`}
         >
@@ -90,7 +90,7 @@ const Dashboard = () => {
             onClick={() => setSelectedStatus(status)}
             className={`px-4 py-2 rounded-md font-semibold transition ${
               selectedStatus === status
-                ? "bg-blue-500 text-white"
+                ? "bg-rose-700 text-white"
                 : "bg-gray-200 text-gray-700"
             }`}
           >

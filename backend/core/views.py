@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from django.db.models import Count
 from .models import Driver, Trip, Earning
-from .serializers import DriverSerializer
+from .serializers import DriverSerializer , UserRegistrationSerializer
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
 from django.db.models import Sum
 from django.utils import timezone
+from rest_framework import generics
+from rest_framework.permissions import AllowAny, IsAuthenticated
 # Create your views here.
 
 
@@ -18,7 +20,27 @@ class ExampleView(APIView):
         data = {"message": "Hello from Django!"}
         return Response(data)
     
+class UserRegistrationView(generics.CreateAPIView):
+    serializer_class = UserRegistrationSerializer
+    permission_classes = [AllowAny]
 
+
+# User Logout
+class LogoutView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.data.get("refresh_token")
+        if not refresh_token:
+            return Response({"detail": "Refresh token not found."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()  # Blacklist the refresh token
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            
 
 class DriverStatusCountView(APIView):
     def get(self, request):

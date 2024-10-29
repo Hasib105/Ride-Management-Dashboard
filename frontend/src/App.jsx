@@ -1,24 +1,49 @@
 // src/App.js
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Registration from './pages/Registration';
-import Signin from './pages/Signin';
-import Dashboard from './pages/Dashboard';
-import Layout from './components/Layout';
-import TripStatistics from './pages/TripPage';
-import EarningStatistics from './pages/EarningPage';
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+
+import Dashboard from "./pages/Dashboard";
+import Layout from "./components/Layout";
+import TripStatistics from "./pages/TripPage";
+import EarningStatistics from "./pages/EarningPage";
+import Signin from "./pages/Signin"; 
+import Registration from "./pages/Registration"; 
+import { AuthProvider } from "./context/AuthContext";
 
 const App = () => {
   return (
-    <Router>
-      <Layout>
+    <AuthProvider>
+      <Router>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/trip-statistics" element={<TripStatistics />} />
-          <Route path="/earning-statistics" element={<EarningStatistics />} />
+          <Route path="/signin" element={<Signin />} />
+          <Route path="/register" element={<Registration />} />
+          <Route
+            path="/"
+            element={
+              <Layout>
+                <Dashboard />
+              </Layout>
+            }
+          />
+          <Route
+            path="/trip-statistics"
+            element={
+              <Layout>
+                <TripStatistics />
+              </Layout>
+            }
+          />
+          <Route
+            path="/earning-statistics"
+            element={
+              <Layout>
+                <EarningStatistics />
+              </Layout>
+            }
+          />
         </Routes>
-      </Layout>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 };
 

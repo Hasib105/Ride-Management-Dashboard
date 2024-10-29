@@ -10,6 +10,7 @@ django-cors-headers = "*"
 mysqlclient = "*"
 channels = "*"
 daphne = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 
