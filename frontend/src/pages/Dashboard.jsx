@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { LoadScript, GoogleMap, Marker } from "@react-google-maps/api";
+import { useLoadScript, GoogleMap, Marker } from "@react-google-maps/api";
 
-const center = { lat: 37.7749, lng: -122.4194 }; // Default center
+const center = { lat: 40.7128, lng: -74.006 }; // Default center New York
 
 const Dashboard = () => {
   const [drivers, setDrivers] = useState([]); // Ensure initial state is an array
@@ -10,6 +10,10 @@ const Dashboard = () => {
   const [selectedStatus, setSelectedStatus] = useState("ALL");
 
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey, // Loading the API key
+  });
 
   const fetchStatusCounts = async () => {
     try {
@@ -63,7 +67,7 @@ const Dashboard = () => {
         socket.close();
       }
     };
-  }, [selectedStatus]); // Add selectedStatus as a dependency to send status updates
+  }, [selectedStatus]);
 
   const filteredDrivers =
     selectedStatus === "ALL"
@@ -98,7 +102,7 @@ const Dashboard = () => {
           </button>
         ))}
       </div>
-      <LoadScript googleMapsApiKey={googleMapsApiKey}>
+      {isLoaded ? (
         <GoogleMap
           mapContainerClassName="w-full h-[600px] rounded-md overflow-hidden"
           center={center}
@@ -115,7 +119,9 @@ const Dashboard = () => {
             />
           ))}
         </GoogleMap>
-      </LoadScript>
+      ) : (
+        <div>Loading Map...</div>
+      )}
     </div>
   );
 };
