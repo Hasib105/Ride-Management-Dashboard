@@ -16,6 +16,17 @@ git clone https://github.com/your-username/your-repo-name.git](https://github.co
 ```
 
 create a .env in backend youe can follwo .env.example:
+```bash
+SECRET_KEY=
+DEBUG=
+ALLOWED_HOSTS=
+
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+DB_HOST=
+DB_PORT=
+```
 
 run docker command:
 ```bash
