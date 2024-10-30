@@ -32,3 +32,14 @@ run docker command:
 ```bash
 docker-compose up --build
 ```
+After completing build
+
+Frontend  Url:
+```bash
+http://localhost/
+```
+
+Backend  Url:
+```bash
+http://localhost:8000/
+```
