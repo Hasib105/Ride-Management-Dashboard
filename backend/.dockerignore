@@ -1,0 +1,40 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environment directories
+.env.example/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Ignore local configuration files
+*.local
+*.log
+
+# Ignore database files
+*.sqlite3
+
+# Ignore static files if they are generated during build
+staticfiles/
+media/
+
+# Ignore IDE/editor specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore Docker-related files
+Dockerfile*
+.dockerignore
+
+# Ignore other unnecessary files
+*.md
+*.txt
+*.csv
+*.json

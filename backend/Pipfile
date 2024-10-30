@@ -7,11 +7,11 @@ name = "pypi"
 django = "*"
 djangorestframework = "*"
 django-cors-headers = "*"
-mysqlclient = "*"
+PyMySQL = "*"
 channels = "*"
 daphne = "*"
 djangorestframework-simplejwt = "*"
-
+drf-yasg = "*"
 [dev-packages]
 
 [requires]

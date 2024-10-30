@@ -1,8 +1,8 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from core.models import Driver
-from core.serializers import DriverSerializer
+
+
 from django.db.models import Count
 
 class DriverLocationConsumer(AsyncWebsocketConsumer):
@@ -18,6 +18,7 @@ class DriverLocationConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def receive(self, text_data):
+        from core.serializers import DriverSerializer
         data = json.loads(text_data)
         status = data.get("status", None)
 
@@ -49,6 +50,7 @@ class DriverLocationConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_drivers(self, status):
+        from core.models import Driver
         if status and status != 'ALL':
             return list(Driver.objects.filter(status=status))
         else:
@@ -57,5 +59,6 @@ class DriverLocationConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_status_counts(self):
         """Fetches the count of drivers by status."""
+        from core.models import Driver
         counts = Driver.objects.values('status').annotate(count=Count('status'))
         return {item['status']: item['count'] for item in counts}
