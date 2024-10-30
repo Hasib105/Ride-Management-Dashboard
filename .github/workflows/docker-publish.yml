@@ -23,7 +23,11 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
+      
+    - name: Copy .env file for Backend
+      run: |
+        cp backend/.env.example backend/.env
+        
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
